@@ -1,40 +1,47 @@
-# Overview — Aplikasi Guest & API Connectivity Tester
+# Overview — Guest Application & API Connectivity Tester
 
 ## 1. Gambaran Umum
 
-Aplikasi ini merupakan aplikasi web sederhana untuk menampilkan daftar nama tamu sekaligus menyediakan REST API sebagai endpoint pengujian konektivitas server.
+Aplikasi ini merupakan aplikasi web satu halaman (one-page web application) untuk mencatat data tamu, menampilkan daftar tamu, serta menyediakan REST API sebagai endpoint pengujian konektivitas server.
 
-Aplikasi akan digunakan untuk membantu menguji apakah server VPS dapat diakses oleh pihak eksternal, khususnya Bank Jatim, melalui endpoint API yang disediakan.
+Aplikasi digunakan untuk membantu menguji apakah server VPS dapat diakses oleh pihak eksternal, khususnya Bank Jatim, melalui endpoint API yang disediakan.
 
 Aplikasi memiliki dua fungsi utama:
 
-1. **Guest Application:** Pengguna dapat memasukkan nama tamu dan melihat daftar nama yang telah tersimpan.
-2. **API Connectivity Tester:** Menyediakan endpoint API sederhana untuk menguji aksesibilitas server dan respons API dari luar server.
+1. **Guest Application:** Pengunjung mengisi form data tamu dan melihat daftar tamu yang telah tercatat.
+2. **API Connectivity Tester:** Menyediakan endpoint REST API untuk menguji aksesibilitas server, penerimaan request, dan pengiriman response.
 
-Aplikasi ini bukan sistem integrasi transaksi QRIS. Fokusnya hanya menyediakan endpoint sederhana yang dapat digunakan untuk menguji konektivitas, request, dan response.
+Aplikasi juga menyediakan pilihan keperluan kunjungan berupa permintaan API data tamu.
+
+Aplikasi ini bukan sistem integrasi transaksi QRIS atau sistem pengelolaan tamu yang kompleks. Fokusnya adalah pencatatan data tamu dan pengujian konektivitas API.
 
 ## 2. Tujuan
 
-- Menyediakan aplikasi sederhana untuk mencatat nama tamu.
-- Menampilkan daftar tamu dalam bentuk grid.
+- Menyediakan aplikasi sederhana untuk mencatat data tamu.
+- Menyediakan form data tamu dalam satu halaman.
+- Menampilkan daftar tamu dalam bentuk tabel.
+- Menyediakan pilihan keperluan kunjungan secara manual maupun dropdown.
+- Menyediakan pilihan keperluan `Minta API Data Tamu`.
+- Mencatat IP address pengunjung secara otomatis.
+- Menyamarkan informasi sensitif pada tampilan tabel.
 - Menyediakan REST API yang dapat diakses dari luar server.
-- Memastikan endpoint API dapat menerima dan memberikan respons.
 - Menjadi sarana pengujian konektivitas antara server VPS dan pihak Bank Jatim.
-- Memiliki konfigurasi deployment menggunakan Docker agar aplikasi mudah dijalankan dan dipelihara di VPS.
+- Menyediakan konfigurasi Docker agar aplikasi mudah dijalankan dan dipelihara di VPS.
 
 ## 3. Teknologi
 
-| Komponen | Teknologi |
-|---|---|
-| Backend | PHP Native 8.3 |
-| Frontend | HTML, CSS, JavaScript |
-| Database | MySQL 8.4 |
-| Database Access | PDO |
-| Web Server Container | Apache |
-| Containerization | Docker |
-| Container Orchestration | Docker Compose |
-| Reverse Proxy | Nginx (host VPS) |
-| SSL | Certbot / Let's Encrypt |
+| Komponen                | Teknologi               |
+| ----------------------- | ----------------------- |
+| Backend                 | PHP Native 8.3          |
+| Frontend                | HTML, CSS, JavaScript   |
+| Database                | MySQL 8.4               |
+| Database Access         | PDO                     |
+| Web Server Container    | Apache                  |
+| Containerization        | Docker                  |
+| Container Orchestration | Docker Compose          |
+| Reverse Proxy           | Nginx (host VPS)        |
+| SSL                     | Certbot / Let's Encrypt |
+| DNS                     | Cloudflare              |
 
 Tidak menggunakan framework PHP seperti Laravel maupun framework frontend tambahan.
 
@@ -42,7 +49,7 @@ Tidak menggunakan framework PHP seperti Laravel maupun framework frontend tambah
 
 Aplikasi akan di-deploy pada VPS Debian 12 yang sudah memiliki Nginx dan Certbot/Let's Encrypt.
 
-Aplikasi harus berjalan di bawah domain yang sudah tersedia, bukan menggunakan subdomain baru.
+Aplikasi berjalan di bawah domain yang sudah tersedia, bukan menggunakan subdomain baru.
 
 **Target URL aplikasi:**
 
@@ -56,9 +63,11 @@ Aplikasi harus berjalan di bawah domain yang sudah tersedia, bukan menggunakan s
 
 Ketentuan deployment:
 
-- Menggunakan domain dan sertifikat SSL yang sudah tersedia.
-- Tidak membuat virtual host atau server block Nginx baru.
+- Menggunakan domain dan DNS Cloudflare yang sudah tersedia.
+- Pengaturan Cloudflare dilakukan secara manual oleh pemilik VPS, cukup dengan menambahkan DNS record yang diperlukan.
+- Tidak perlu membuat panduan konfigurasi Cloudflare di dalam dokumentasi deployment.
 - Tidak membuat subdomain baru.
+- Menggunakan server block Nginx yang sudah tersedia.
 - Nginx tetap berjalan langsung pada host VPS.
 - Aplikasi PHP dan Apache berjalan di dalam Docker container.
 - MySQL berjalan di dalam Docker container.
@@ -68,31 +77,162 @@ Ketentuan deployment:
 
 ## 5. Fitur Aplikasi
 
-### 5.1. Guest Application
+### 5.1. One-Page Web Application
 
-Halaman utama aplikasi digunakan untuk memasukkan nama tamu dan menampilkan daftar tamu.
+Aplikasi menggunakan konsep one-page web application. Seluruh fungsi utama berada dalam satu halaman tanpa perlu berpindah ke halaman lain.
 
-Fitur:
+Urutan tampilan:
 
-1. Input nama tamu.
-2. Tombol submit untuk menyimpan nama.
-3. Menampilkan daftar tamu dalam bentuk grid.
-4. Menampilkan nama tamu yang telah tersimpan di database.
-5. Menampilkan informasi apabila belum ada data tamu.
-6. Memberikan feedback ketika data berhasil atau gagal disimpan.
+1. Form data tamu.
+2. Tabel daftar tamu.
 
-Alur aplikasi:
+<escape>+--------------------------------------------------+
+| FORM DATA TAMU |
+| |
+| Nama |
+| Email |
+| Nomor HP |
+| |
+| Keperluan Kunjungan |
+| [ Tulis Manual / Pilih Keperluan ] |
+| |
+| [ Submit ] |
++--------------------------------------------------+
+| DAFTAR TAMU |
+| |
+| Nama | Email | No. HP | Keperluan | IP | Updated |
+| |
+| ... |
++--------------------------------------------------+</escape>
 
-1. Pengguna membuka halaman aplikasi.
-2. Aplikasi mengambil daftar tamu dari database.
-3. Daftar nama ditampilkan dalam bentuk grid.
-4. Pengguna memasukkan nama pada input.
-5. Pengguna menekan tombol submit.
-6. Aplikasi melakukan validasi.
-7. Jika valid, data disimpan ke database.
-8. Daftar tamu diperbarui.
+Ilustrasi tersebut hanya menggambarkan susunan elemen, bukan ketentuan desain visual.
 
-### 5.2. REST API
+### 5.2. Form Data Tamu
+
+Form berada pada bagian atas halaman.
+
+Field yang dibutuhkan:
+
+| Field               | Tipe                     | Ketentuan                   |
+| ------------------- | ------------------------ | --------------------------- |
+| Nama                | Text                     | Wajib diisi                 |
+| Email               | Email                    | Wajib diisi dan harus valid |
+| Nomor HP            | Telp/Text                | Wajib diisi                 |
+| Keperluan Kunjungan | Pilihan dan input manual | Wajib diisi                 |
+| IP Address          | Otomatis dari request    | Tidak diisi oleh pengunjung |
+
+#### A. Keperluan Kunjungan
+
+Field keperluan kunjungan menyediakan dua cara pengisian:
+
+1. **Tulis Manual**
+   - Pengunjung dapat menuliskan keperluan kunjungan sendiri.
+   - Gunakan input teks atau textarea.
+   - Nilai yang dimasukkan disimpan sebagai keperluan kunjungan.
+
+2. **Pilih dari Dropdown**
+   - Pengunjung dapat memilih keperluan yang telah disediakan.
+   - Untuk saat ini, dropdown hanya memiliki satu pilihan:
+     - `Minta API Data Tamu`
+   - Nilai pilihan disimpan sebagai keperluan kunjungan.
+
+Gunakan mekanisme pemilihan yang jelas, misalnya select atau segmented control, untuk membedakan mode pengisian manual dan dropdown.
+
+Perilaku form:
+
+- Ketika memilih mode manual, tampilkan input keperluan manual.
+- Ketika memilih mode dropdown, tampilkan dropdown pilihan keperluan.
+- Hanya nilai dari mode yang sedang aktif yang dikirim dan disimpan.
+- Pengunjung tidak perlu mengisi kedua mode sekaligus.
+- Validasi keperluan kunjungan tetap dilakukan di backend.
+
+Jangan menambahkan pilihan dropdown lain tanpa kebutuhan baru yang jelas.
+
+### 5.3. Fitur Permintaan API Data Tamu
+
+Aplikasi menyediakan fitur untuk mencatat pengunjung yang memiliki keperluan meminta API data tamu.
+
+Alur:
+
+1. Pengunjung mengisi nama, email, dan nomor HP.
+2. Pengunjung memilih mode dropdown pada keperluan kunjungan.
+3. Pengunjung memilih `Minta API Data Tamu`.
+4. Pengunjung mengirim form.
+5. Sistem menyimpan data tamu dengan keperluan `Minta API Data Tamu`.
+6. Data tersebut muncul pada tabel daftar tamu.
+
+Ketentuan:
+
+- Tidak perlu membuat halaman permintaan API terpisah.
+- Tidak perlu membuat form permintaan API terpisah.
+- Tidak perlu membuat sistem approval atau pengelolaan permintaan API.
+- Tidak perlu membuat sistem API key atau token khusus hanya untuk fitur permintaan ini.
+- Permintaan API cukup dicatat melalui field keperluan kunjungan.
+
+Fitur ini merupakan pencatatan keperluan pengunjung, bukan pemberian akses API secara otomatis.
+
+### 5.4. Tabel Daftar Tamu
+
+Tabel berada tepat di bawah form pada halaman yang sama.
+
+Tabel menampilkan data tamu yang telah tersimpan di database.
+
+Kolom:
+
+| Kolom               | Keterangan                                     |
+| ------------------- | ---------------------------------------------- |
+| Nama                | Nama lengkap pengunjung                        |
+| Email               | Email dengan sebagian karakter disensor        |
+| Nomor HP            | Nomor HP dengan sebagian digit disensor        |
+| Keperluan Kunjungan | Keperluan yang dipilih atau ditulis pengunjung |
+| IP Address          | Hanya IP segmen pertama yang tidak disensor    |
+| Last Updated        | Waktu terakhir data diperbarui                 |
+
+Contoh tampilan data:
+
+| Nama     | Email              | Nomor HP       | Keperluan           | IP Address     | Last Updated      |
+| -------- | ------------------ | -------------- | ------------------- | -------------- | ----------------- |
+| John Doe | jo\*\*\*@gmail.com | 08\*\*\*\*1234 | Minta API Data Tamu | 192.**_._**.10 | 12 Nov 2026 09:30 |
+| Jane Doe | ja\*\*\*@gmail.com | 08\*\*\*\*5678 | Kunjungan kerja     | 103.**_._**.20 | 12 Nov 2026 10:15 |
+
+Data di atas hanya ilustrasi.
+
+#### Ketentuan Data Masking
+
+Informasi berikut harus disensor pada tampilan tabel:
+
+- Email.
+- Nomor HP.
+- IP Address.
+
+Aturan masking:
+
+- Email: tampilkan sebagian karakter awal dan domain secara terbatas.
+- Nomor HP: tampilkan beberapa digit awal dan akhir, sensor bagian tengah.
+- IP Address: sensor segmen 2 - 4 atau digit IP.
+
+Masking hanya berlaku pada tampilan tabel aplikasi.
+
+Data asli tetap disimpan di database agar dapat digunakan untuk kebutuhan pencatatan dan API sesuai kebijakan aksesnya.
+
+Jangan menampilkan data asli melalui HTML, atribut tersembunyi, atau JavaScript yang dapat diperiksa dari browser hanya untuk mengakali tampilan masking.
+
+Untuk API, jangan menganggap masking pada tabel otomatis berlaku sebagai perlindungan API. Tentukan field response sesuai kebutuhan dan kebijakan akses endpoint. Jangan mengirim informasi pribadi secara tidak perlu.
+
+#### Last Updated
+
+Tabel wajib memiliki kolom `Last Updated`.
+
+Kolom ini menggunakan data `updated_at` dari database.
+
+Ketentuan:
+
+- Saat data pertama kali dibuat, `created_at` dan `updated_at` diisi otomatis.
+- Jika data diperbarui, `updated_at` berubah mengikuti waktu perubahan terakhir.
+- Format waktu pada tabel dibuat mudah dibaca.
+- Tidak perlu menambahkan fitur edit data hanya demi menampilkan kolom ini.
+
+### 5.5. REST API
 
 API digunakan untuk menguji konektivitas dan komunikasi HTTP antara server dengan pihak eksternal.
 
@@ -101,6 +241,7 @@ API digunakan untuk menguji konektivitas dan komunikasi HTTP antara server denga
 `GET /api/v1/health`
 
 Tujuan:
+
 - Menguji apakah server dapat diakses.
 - Memastikan aplikasi PHP dapat memberikan respons.
 - Memastikan koneksi database dapat digunakan.
@@ -125,11 +266,12 @@ Jika database tidak dapat diakses, API harus memberikan response error yang sesu
 `GET /api/v1/guests`
 
 Tujuan:
+
 - Mengambil daftar tamu dari database.
 - Menguji komunikasi HTTP GET.
 - Menguji response JSON.
 
-Contoh response berhasil:
+Contoh response:
 
 ```json
 {
@@ -139,17 +281,25 @@ Contoh response berhasil:
     {
       "id": 1,
       "name": "John Doe",
-      "created_at": "2026-11-11 10:00:00"
+      "email": "john@example.com",
+      "phone": "081234567890",
+      "visit_purpose": "Minta API Data Tamu",
+      "ip_address": "192.168.1.10",
+      "created_at": "2026-11-12 09:00:00",
+      "updated_at": "2026-11-12 09:30:00"
     }
   ]
 }
 ```
+
+Contoh tersebut merupakan struktur internal yang perlu disesuaikan dengan kebijakan akses data. Informasi pribadi tidak boleh dibuka ke pihak yang tidak berwenang. Jika API ditujukan untuk pengujian akses eksternal, pastikan field yang dikembalikan memang telah disetujui untuk dibagikan.
 
 #### C. Create Guest
 
 `POST /api/v1/guests`
 
 Tujuan:
+
 - Menguji komunikasi HTTP POST.
 - Menguji penerimaan request JSON.
 - Menguji proses penyimpanan data ke database.
@@ -158,11 +308,16 @@ Contoh request:
 
 ```json
 {
-  "name": "John Doe"
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "081234567890",
+  "visit_purpose": "Minta API Data Tamu"
 }
 ```
 
-Contoh response berhasil:
+IP address dideteksi oleh backend dari request yang diterima server. Jangan menerima IP address dari field request sebagai sumber yang tepercaya.
+
+Contoh response:
 
 ```json
 {
@@ -171,16 +326,20 @@ Contoh response berhasil:
   "data": {
     "id": 1,
     "name": "John Doe",
-    "created_at": "2026-11-11 10:00:00"
+    "email": "john@example.com",
+    "phone": "081234567890",
+    "visit_purpose": "Minta API Data Tamu",
+    "created_at": "2026-11-12 09:00:00",
+    "updated_at": "2026-11-12 09:00:00"
   }
 }
 ```
 
-### 5.3. Standar Response API
+### 5.6. Standar Response API
 
-Semua endpoint API harus menggunakan format JSON yang konsisten.
+Semua endpoint API menggunakan format JSON yang konsisten.
 
-Response minimal memiliki struktur:
+Struktur dasar:
 
 ```json
 {
@@ -192,16 +351,16 @@ Response minimal memiliki struktur:
 
 Ketentuan HTTP status:
 
-| Status | Penggunaan |
-|---|---|
-| 200 | Request berhasil |
-| 201 | Data berhasil dibuat |
-| 400 | Request tidak valid |
-| 404 | Endpoint tidak ditemukan |
-| 405 | HTTP method tidak didukung |
-| 422 | Validasi gagal |
-| 500 | Internal server error |
-| 503 | Layanan atau database tidak tersedia |
+| Status | Penggunaan                           |
+| ------ | ------------------------------------ |
+| 200    | Request berhasil                     |
+| 201    | Data berhasil dibuat                 |
+| 400    | Request tidak valid                  |
+| 404    | Endpoint tidak ditemukan             |
+| 405    | HTTP method tidak didukung           |
+| 422    | Validasi gagal                       |
+| 500    | Internal server error                |
+| 503    | Layanan atau database tidak tersedia |
 
 Pastikan header response API menggunakan `Content-Type: application/json`.
 
@@ -215,17 +374,26 @@ Nama database dan kredensial harus dikonfigurasi melalui environment variable.
 
 Nama tabel: `guests`
 
-| Kolom | Tipe Data | Keterangan |
-|---|---|---|
-| id | BIGINT UNSIGNED | Primary Key, Auto Increment |
-| name | VARCHAR(150) | Nama tamu |
-| created_at | TIMESTAMP | Waktu data dibuat |
+| Kolom         | Tipe Data       | Keterangan                            |
+| ------------- | --------------- | ------------------------------------- |
+| id            | BIGINT UNSIGNED | Primary Key, Auto Increment           |
+| name          | VARCHAR(150)    | Nama tamu                             |
+| email         | VARCHAR(255)    | Email tamu                            |
+| phone         | VARCHAR(30)     | Nomor HP tamu                         |
+| visit_purpose | TEXT            | Keperluan kunjungan                   |
+| ip_address    | VARCHAR(45)     | IP address pengunjung, mendukung IPv4 |
+| created_at    | TIMESTAMP       | Waktu data dibuat                     |
+| updated_at    | TIMESTAMP       | Waktu terakhir data diperbarui        |
 
 Ketentuan:
+
 - `id` sebagai primary key.
-- `name` wajib diisi.
-- Panjang nama maksimal 150 karakter.
-- `created_at` otomatis mencatat waktu penyimpanan.
+- `name`, `email`, `phone`, dan `visit_purpose` wajib diisi.
+- Email harus divalidasi formatnya.
+- `ip_address` dicatat otomatis oleh backend.
+- Gunakan `VARCHAR(45)` untuk mendukung IPv4 dan IPv6.
+- `created_at` dan `updated_at` dikelola otomatis.
+- Jangan menambahkan kolom atau tabel lain tanpa kebutuhan yang jelas.
 
 ### 6.2. Database Connection
 
@@ -245,14 +413,23 @@ Gunakan PDO prepared statements untuk seluruh query yang melibatkan input penggu
 
 ## 7. Validasi dan Penanganan Error
 
-### 7.1. Validasi Input Nama
+### 7.1. Validasi Form
 
-Ketentuan:
-- Nama tidak boleh kosong.
-- Nama harus berupa string.
-- Nama harus di-trim sebelum diproses.
-- Nama maksimal 150 karakter.
-- Input yang hanya berisi spasi harus ditolak.
+| Field               | Validasi                                                |
+| ------------------- | ------------------------------------------------------- |
+| Nama                | Wajib, string, maksimal 150 karakter                    |
+| Email               | Wajib, format email valid, maksimal 255 karakter        |
+| Nomor HP            | Wajib, format nomor HP yang wajar, maksimal 30 karakter |
+| Keperluan Kunjungan | Wajib                                                   |
+| Keperluan Manual    | Wajib diisi jika mode manual dipilih                    |
+| Dropdown Keperluan  | Hanya menerima pilihan yang telah ditentukan            |
+| IP Address          | Diambil dari request server, bukan input pengunjung     |
+
+Jika mode dropdown dipilih, backend hanya menerima nilai yang telah diizinkan, yaitu `Minta API Data Tamu`.
+
+Jika mode manual dipilih, backend menerima teks keperluan yang telah melalui validasi panjang dan sanitasi yang sesuai.
+
+Jangan hanya mengandalkan validasi JavaScript. Backend tetap menjadi sumber validasi utama.
 
 ### 7.2. Penanganan Error
 
@@ -261,21 +438,24 @@ Aplikasi harus menangani kondisi berikut:
 - Database tidak dapat dihubungi.
 - Query database gagal.
 - Request JSON tidak valid.
-- Request tidak memiliki field `name`.
+- Request tidak memiliki field wajib.
 - Nama kosong.
-- Nama melebihi batas karakter.
+- Email tidak valid.
+- Nomor HP tidak valid.
+- Keperluan kunjungan kosong.
+- Pilihan dropdown tidak dikenal.
+- Request menggunakan HTTP method yang salah.
 - Endpoint tidak ditemukan.
-- HTTP method tidak sesuai.
 - Terjadi internal server error.
 
 Jangan menampilkan detail error database, kredensial, maupun informasi internal server kepada pengguna atau pihak eksternal.
 
-## 8. Keamanan Dasar
+## 8. Keamanan Dasar dan Privasi
 
-Meskipun aplikasi hanya digunakan untuk pengujian, tetap terapkan keamanan dasar.
+Terapkan keamanan dasar meskipun aplikasi digunakan untuk pengujian konektivitas.
 
 - Gunakan PDO prepared statements untuk mencegah SQL Injection.
-- Lakukan HTML escaping saat menampilkan nama tamu untuk mencegah XSS.
+- Lakukan HTML escaping saat menampilkan data tamu.
 - Validasi seluruh input dari frontend maupun API.
 - Jangan menyimpan kredensial database langsung di source code.
 - Gunakan file `.env` untuk konfigurasi sensitif.
@@ -284,8 +464,30 @@ Meskipun aplikasi hanya digunakan untuk pengujian, tetap terapkan keamanan dasar
 - Gunakan error handling yang tidak membocorkan informasi internal.
 - Batasi akses MySQL hanya melalui jaringan internal Docker.
 - Jangan mengekspos port database ke internet.
+- Terapkan CSRF token untuk form HTML.
+- Jangan mempercayai IP dari header request yang dapat dimanipulasi sembarang klien.
 
-Untuk form HTML, gunakan mekanisme CSRF token sederhana. Endpoint API yang menerima JSON harus mengikuti kebutuhan autentikasi dan validasi yang sesuai dengan konteks pengujian, tanpa menambahkan sistem autentikasi yang tidak diperlukan.
+### 8.1. IP Address Detection
+
+IP address dicatat otomatis oleh backend.
+
+Ketentuan:
+
+- Jika aplikasi menerima request langsung, gunakan alamat remote client.
+- Jika request melewati reverse proxy yang dipercaya, gunakan konfigurasi trusted proxy untuk mendapatkan IP client sebenarnya.
+- Jika Cloudflare menggunakan proxy, konfigurasi Nginx harus mempercayai header IP Cloudflare hanya dari rentang IP Cloudflare yang resmi dan terpelihara.
+- Jangan mengambil `X-Forwarded-For` atau `CF-Connecting-IP` secara sembarang tanpa memvalidasi sumber proxy.
+- Jangan menerima IP address dari body request sebagai sumber yang tepercaya.
+
+Tujuannya agar IP yang disimpan tidak sekadar IP proxy dan tidak mudah dipalsukan oleh pengunjung.
+
+### 8.2. Data Masking
+
+Data asli tetap disimpan di database. Masking diterapkan pada tampilan tabel.
+
+Email, nomor HP, dan IP address harus disensor secara konsisten.
+
+Jangan mengirim data sensitif ke frontend jika tidak diperlukan untuk menampilkan tabel.
 
 ## 9. Docker Setup
 
@@ -303,7 +505,7 @@ Gunakan dua container utama:
 
 2. **db**
    - MySQL 8.4.
-   - Menyimpan seluruh data tamu.
+   - Menyimpan data tamu.
    - Menggunakan named volume agar data tetap tersimpan ketika container dihentikan atau dibuat ulang.
 
 Arsitektur:
@@ -312,10 +514,13 @@ Arsitektur:
 Internet
    |
    v
+Cloudflare DNS / Proxy (sesuai konfigurasi DNS)
+   |
+   v
 Existing Nginx (Host VPS)
    |
    | HTTPS :443
-   | SSL handled by Certbot
+   | SSL handled by existing Certbot
    |
    | /app-tamu/*
    v
@@ -345,7 +550,7 @@ Ketentuan service aplikasi:
 - Port container Apache `80` dipetakan ke `127.0.0.1:8081` pada host.
 - Menggunakan environment variable dari `.env`.
 - Terhubung ke service database melalui internal Docker network.
-- Memiliki konfigurasi restart policy yang sesuai untuk deployment VPS.
+- Memiliki restart policy yang sesuai untuk deployment VPS.
 
 Ketentuan service database:
 
@@ -361,7 +566,7 @@ Gunakan named volume:
 
 `mysql_data`
 
-Tujuannya agar data database tetap tersimpan meskipun container dihentikan, dihapus, atau dibuat ulang.
+Data database harus tetap tersedia meskipun container dihentikan, dihapus, atau dibuat ulang.
 
 Jangan menggunakan perintah yang menghapus volume database saat deployment normal.
 
@@ -390,7 +595,7 @@ Nilai kredensial pada contoh hanya placeholder dan wajib diganti sebelum deploym
 
 Jangan menyimpan `.env` di repository Git.
 
-### 9.5. File Docker yang Dibutuhkan
+### 9.5. File Docker
 
 Minimal sediakan:
 
@@ -416,9 +621,9 @@ Bukan:
 - `https://app-tamu.lksbarokah255.my.id`
 - `https://lksbarokah255.my.id/`
 
-### 10.1. Konfigurasi Base Path Aplikasi
+### 10.1. Konfigurasi Base Path
 
-Gunakan satu konfigurasi terpusat:
+Gunakan konfigurasi terpusat:
 
 `APP_BASE_PATH=/app-tamu`
 
@@ -435,9 +640,7 @@ Hal yang wajib diperhatikan:
 - URL endpoint API.
 - URL internal lainnya.
 
-Jangan menggunakan path absolut yang langsung mengarah ke root domain seperti `/assets/...` atau `/api/v1/...` jika path tersebut seharusnya berada di bawah `/app-tamu`.
-
-Contoh URL yang benar:
+Contoh URL publik yang benar:
 
 ```text
 /app-tamu/assets/css/style.css
@@ -446,15 +649,15 @@ Contoh URL yang benar:
 /app-tamu/api/v1/guests
 ```
 
-Pastikan base path tidak ditambahkan dua kali dan tidak menyebabkan URL ganda seperti `/app-tamu/app-tamu/...`.
+Jangan menggunakan path absolut yang langsung mengarah ke root domain seperti `/assets/...` atau `/api/v1/...` jika path tersebut seharusnya berada di bawah `/app-tamu`.
+
+Pastikan base path tidak ditambahkan dua kali.
 
 ### 10.2. Konfigurasi Nginx Host VPS
 
 Nginx tetap berjalan langsung di host VPS.
 
-Tambahkan konfigurasi lokasi aplikasi pada server block HTTPS yang sudah melayani:
-
-`lksbarokah255.my.id`
+Tambahkan konfigurasi lokasi aplikasi pada server block HTTPS yang sudah melayani `lksbarokah255.my.id`.
 
 Jangan membuat server block baru.
 
@@ -481,26 +684,20 @@ location ^~ /app-tamu/ {
 }
 ```
 
-**Catatan penting mengenai `proxy_pass`:**
-
-Penggunaan trailing slash pada:
-
-`proxy_pass http://127.0.0.1:8081/;`
-
-membuat Nginx meneruskan request dengan menghilangkan prefix `/app-tamu/`.
+Penggunaan trailing slash pada `proxy_pass` membuat Nginx menghilangkan prefix `/app-tamu/` ketika meneruskan request ke Apache.
 
 Contoh:
 
-| Request Publik | Request ke Apache |
-|---|---|
-| `/app-tamu/` | `/` |
-| `/app-tamu/api/v1/health` | `/api/v1/health` |
-| `/app-tamu/api/v1/guests` | `/api/v1/guests` |
+| Request Publik                   | Request ke Apache       |
+| -------------------------------- | ----------------------- |
+| `/app-tamu/`                     | `/`                     |
+| `/app-tamu/api/v1/health`        | `/api/v1/health`        |
+| `/app-tamu/api/v1/guests`        | `/api/v1/guests`        |
 | `/app-tamu/assets/css/style.css` | `/assets/css/style.css` |
 
-Karena itu, aplikasi PHP dan Apache harus memproses request internal tanpa prefix `/app-tamu`, tetapi menghasilkan URL publik dengan prefix tersebut.
+Aplikasi PHP dan Apache memproses request internal tanpa prefix `/app-tamu`, tetapi harus menghasilkan URL publik dengan prefix tersebut.
 
-Jangan mengubah konfigurasi root website, SSL, atau lokasi lain yang sudah berjalan.
+Jika Cloudflare proxy aktif, konfigurasi trusted proxy dan real IP harus diperhatikan agar IP client dapat dicatat dengan benar. Jangan mengubah konfigurasi global Nginx tanpa audit terlebih dahulu.
 
 ### 10.3. SSL dan HTTPS
 
@@ -513,22 +710,6 @@ Ketentuan:
 - Container Apache tidak perlu menangani SSL.
 - Akses publik tetap menggunakan HTTPS.
 - Komunikasi dari Nginx ke container aplikasi menggunakan HTTP melalui localhost.
-
-### 10.4. Pemeriksaan Konfigurasi Nginx
-
-Sebelum melakukan reload:
-
-```bash
-sudo nginx -t
-```
-
-Jika konfigurasi valid, lakukan reload:
-
-```bash
-sudo systemctl reload nginx
-```
-
-Jangan melakukan reload jika pemeriksaan konfigurasi gagal.
 
 ## 11. Struktur Project
 
@@ -560,11 +741,12 @@ guest-app/
 ├── .dockerignore
 ├── .env
 ├── .env.example
-├── README.md
-└── overview.md
+├── overview.md
+├── deploy.md
+└── README.md
 ```
 
-Struktur tersebut merupakan acuan. AI CLI boleh menyesuaikan detail implementasi selama tetap sederhana, konsisten, dan tidak mengubah ruang lingkup aplikasi.
+Struktur dapat disesuaikan selama tetap sederhana, konsisten, dan tidak mengubah ruang lingkup aplikasi.
 
 ## 12. Logging
 
@@ -588,156 +770,191 @@ Pengujian harus mencakup positive case, negative case, dan edge case.
 
 ### 13.1. Positive Case
 
-| No. | Skenario | Hasil yang Diharapkan |
-|---|---|---|
-| 1 | Membuka halaman aplikasi | Halaman berhasil ditampilkan |
-| 2 | Menambahkan nama tamu valid | Data berhasil disimpan |
-| 3 | Menampilkan daftar tamu | Data tampil dalam grid |
-| 4 | Memanggil health check | API memberikan HTTP 200 |
-| 5 | Memanggil GET guests | API memberikan daftar tamu |
-| 6 | Memanggil POST guests dengan nama valid | API memberikan HTTP 201 |
-| 7 | Mengakses aplikasi melalui HTTPS | Aplikasi dapat diakses |
-| 8 | Mengakses API melalui domain publik | API memberikan response JSON |
-| 9 | Mengakses aset CSS dan JavaScript | Aset berhasil dimuat melalui `/app-tamu` |
-| 10 | Menghentikan dan menjalankan ulang container | Aplikasi berjalan kembali dan data tetap tersedia |
+| No. | Skenario                                | Hasil yang Diharapkan                                       |
+| --- | --------------------------------------- | ----------------------------------------------------------- |
+| 1   | Membuka halaman aplikasi                | Halaman one-page berhasil ditampilkan                       |
+| 2   | Mengisi seluruh form dengan data valid  | Data berhasil disimpan                                      |
+| 3   | Mengisi keperluan secara manual         | Keperluan tersimpan sesuai input                            |
+| 4   | Memilih `Minta API Data Tamu`           | Keperluan tersimpan sesuai pilihan                          |
+| 5   | Menampilkan daftar tamu                 | Data tampil dalam tabel                                     |
+| 6   | Menampilkan email, nomor HP, dan IP     | Ketiganya tampil dalam kondisi tersensor                    |
+| 7   | Menampilkan Last Updated                | Waktu pembaruan tampil dengan benar                         |
+| 8   | Memanggil health check                  | API memberikan HTTP 200                                     |
+| 9   | Memanggil GET guests                    | API memberikan daftar tamu sesuai kebijakan akses           |
+| 10  | Memanggil POST guests dengan data valid | API memberikan HTTP 201                                     |
+| 11  | Mengakses aplikasi melalui HTTPS        | Aplikasi dapat diakses                                      |
+| 12  | Mengakses aset melalui subdirectory     | Seluruh aset berhasil dimuat                                |
+| 13  | Restart container aplikasi              | Aplikasi berjalan kembali                                   |
+| 14  | Restart container database              | Koneksi pulih setelah database siap dan data tetap tersedia |
 
 ### 13.2. Negative Case
 
-| No. | Skenario | Hasil yang Diharapkan |
-|---|---|---|
-| 1 | Mengirim nama kosong | Validasi gagal |
-| 2 | Mengirim nama hanya berisi spasi | Validasi gagal |
-| 3 | Mengirim nama melebihi 150 karakter | Validasi gagal |
-| 4 | Mengirim request tanpa field `name` | API memberikan error validasi |
-| 5 | Mengirim JSON tidak valid | API memberikan HTTP 400 |
-| 6 | Menggunakan HTTP method yang salah | API memberikan HTTP 405 |
-| 7 | Mengakses endpoint yang tidak tersedia | API memberikan HTTP 404 |
-| 8 | Database tidak dapat diakses | API memberikan error yang sesuai tanpa membocorkan detail internal |
-| 9 | Mengirim input yang mengandung payload SQL Injection | Input tidak dieksekusi sebagai SQL |
-| 10 | Mengirim input HTML/JavaScript | Konten tidak dieksekusi saat ditampilkan |
+| No. | Skenario                               | Hasil yang Diharapkan                                  |
+| --- | -------------------------------------- | ------------------------------------------------------ |
+| 1   | Nama kosong                            | Validasi gagal                                         |
+| 2   | Email kosong                           | Validasi gagal                                         |
+| 3   | Email tidak valid                      | Validasi gagal                                         |
+| 4   | Nomor HP kosong                        | Validasi gagal                                         |
+| 5   | Nomor HP tidak valid                   | Validasi gagal                                         |
+| 6   | Keperluan kunjungan kosong             | Validasi gagal                                         |
+| 7   | Pilihan dropdown tidak dikenal         | Request ditolak                                        |
+| 8   | Mengirim request tanpa field wajib     | API memberikan error validasi                          |
+| 9   | Mengirim JSON tidak valid              | API memberikan HTTP 400                                |
+| 10  | Menggunakan HTTP method yang salah     | API memberikan HTTP 405                                |
+| 11  | Mengakses endpoint yang tidak tersedia | API memberikan HTTP 404                                |
+| 12  | Database tidak dapat diakses           | API memberikan error tanpa membocorkan detail internal |
+| 13  | Input mengandung payload SQL Injection | Input tidak dieksekusi sebagai SQL                     |
+| 14  | Input mengandung HTML/JavaScript       | Konten tidak dieksekusi saat ditampilkan               |
 
 ### 13.3. Edge Case
 
-| No. | Skenario | Hasil yang Diharapkan |
-|---|---|---|
-| 1 | Database belum memiliki data | Aplikasi menampilkan kondisi data kosong |
-| 2 | Nama memiliki spasi di awal/akhir | Spasi di-trim |
-| 3 | Nama mengandung karakter khusus | Data tetap ditangani dengan aman |
-| 4 | Nama mengandung karakter Unicode | Data dapat disimpan dan ditampilkan |
-| 5 | Request dikirim berulang kali | Setiap request diproses sesuai validasi |
-| 6 | Container aplikasi restart | Aplikasi dapat diakses kembali |
-| 7 | Container database restart | Koneksi pulih setelah database siap |
-| 8 | Aplikasi diakses tanpa trailing slash | Browser diarahkan ke `/app-tamu/` |
-| 9 | Aplikasi diakses melalui subdirectory | Seluruh halaman, aset, dan endpoint tetap menggunakan base path yang benar |
+| No. | Skenario                              | Hasil yang Diharapkan                         |
+| --- | ------------------------------------- | --------------------------------------------- |
+| 1   | Database belum memiliki data          | Tabel menampilkan kondisi kosong              |
+| 2   | Nama memiliki spasi di awal/akhir     | Spasi di-trim                                 |
+| 3   | Email memiliki huruf kapital          | Ditangani secara konsisten                    |
+| 4   | Nomor HP memiliki format berbeda      | Ditangani sesuai aturan validasi              |
+| 5   | Keperluan manual sangat panjang       | Ditolak jika melewati batas yang ditentukan   |
+| 6   | Keperluan mengandung karakter khusus  | Data ditampilkan dengan aman                  |
+| 7   | Nama mengandung karakter Unicode      | Data dapat disimpan dan ditampilkan           |
+| 8   | IP menggunakan IPv6                   | IP dapat disimpan                             |
+| 9   | Request dikirim berulang kali         | Setiap request diproses sesuai validasi       |
+| 10  | Data diperbarui                       | `updated_at` berubah                          |
+| 11  | Aplikasi diakses tanpa trailing slash | Browser diarahkan ke `/app-tamu/`             |
+| 12  | Aplikasi diakses melalui subdirectory | Form, aset, navigasi, dan API tetap berfungsi |
 
-## 14. Deployment Workflow
+## 14. Dokumentasi Project
 
-Deployment dilakukan pada VPS Debian 12.
+AI CLI wajib menghasilkan tiga dokumen utama:
 
-Urutan deployment:
+### 14.1. `overview.md`
 
-1. Periksa kondisi VPS dan konfigurasi Nginx yang sedang berjalan.
-2. Periksa apakah port `8081` sudah digunakan.
-3. Siapkan project aplikasi.
-4. Siapkan file `.env` berdasarkan `.env.example`.
-5. Build dan jalankan container menggunakan Docker Compose.
-6. Pastikan container aplikasi dan database berjalan dengan baik.
-7. Uji aplikasi melalui `127.0.0.1:8081` dari host VPS.
-8. Tambahkan konfigurasi `/app-tamu` pada server block HTTPS yang sudah ada.
-9. Jalankan `nginx -t`.
-10. Jika valid, reload Nginx.
-11. Uji akses melalui domain publik menggunakan HTTPS.
-12. Uji seluruh endpoint API melalui URL publik.
+Dokumen ini berisi gambaran dan spesifikasi aplikasi, meliputi:
 
-### 14.1. Perintah Docker
+- Tujuan aplikasi.
+- Teknologi.
+- Fitur.
+- Struktur halaman.
+- Form data tamu.
+- Tabel daftar tamu.
+- REST API.
+- Database.
+- Validasi.
+- Keamanan.
+- Docker setup.
+- Target deployment.
+- Skenario pengujian.
+- Definition of Done.
 
-Build dan jalankan aplikasi:
+`overview.md` menjadi acuan utama pengembangan aplikasi.
 
-```bash
-docker compose up -d --build
-```
+### 14.2. `deploy.md`
 
-Melihat status container:
+AI CLI wajib membuat dokumen khusus deployment bernama `deploy.md`.
 
-```bash
-docker compose ps
-```
+Dokumen ini berisi panduan deployment aplikasi pada VPS, terpisah dari `overview.md`.
 
-Melihat log aplikasi:
+Panduan hanya mencakup proses di sisi VPS. Konfigurasi Cloudflare tidak perlu dijelaskan secara rinci karena pengaturan DNS record dilakukan secara manual oleh pemilik VPS.
 
-```bash
-docker compose logs -f app
-```
+Isi minimal `deploy.md`:
 
-Melihat log database:
+1. Persiapan VPS Debian 12.
+2. Pemeriksaan kebutuhan dan kondisi server.
+3. Pemeriksaan Docker dan Docker Compose.
+4. Persiapan source code aplikasi.
+5. Konfigurasi `.env`.
+6. Build dan menjalankan Docker Compose.
+7. Pemeriksaan container aplikasi dan database.
+8. Pemeriksaan persistent volume.
+9. Konfigurasi Nginx pada server block yang sudah ada.
+10. Konfigurasi reverse proxy untuk `/app-tamu`.
+11. Penanganan trusted proxy dan IP address jika diperlukan.
+12. Pemeriksaan konfigurasi Nginx menggunakan `nginx -t`.
+13. Reload Nginx secara aman.
+14. Pengujian aplikasi melalui localhost.
+15. Pengujian aplikasi melalui domain publik.
+16. Pengujian endpoint API.
+17. Pemeriksaan log aplikasi dan database.
+18. Prosedur update atau redeployment aplikasi.
+19. Prosedur restart dan troubleshooting.
+20. Catatan keamanan dan backup database.
 
-```bash
-docker compose logs -f db
-```
+Ketentuan penulisan `deploy.md`:
 
-Menghentikan container:
+- Ditujukan untuk pengguna yang masih belajar deployment VPS.
+- Gunakan langkah berurutan dan instruksi yang dapat langsung dijalankan.
+- Sertakan command yang diperlukan.
+- Jelaskan fungsi command secara singkat.
+- Bedakan perintah yang dijalankan di VPS dengan konfigurasi yang harus diedit.
+- Jelaskan lokasi file konfigurasi yang perlu diperiksa.
+- Jangan mengasumsikan server masih kosong.
+- Audit kondisi Nginx, Docker, port, dan layanan yang sudah berjalan sebelum perubahan.
+- Jangan membuat konfigurasi yang dapat mengganggu website lain.
+- Jangan menghapus database atau Docker volume saat proses update normal.
+- Sertakan cara verifikasi setelah setiap tahap penting.
+- Jika ada konfigurasi yang berpotensi mengganggu layanan lain, jelaskan risikonya sebelum menyarankan perubahan.
 
-```bash
-docker compose down
-```
+### 14.3. `README.md`
 
-Perintah `docker compose down` tidak boleh disertai opsi penghapusan volume pada proses penghentian normal.
+Berisi informasi singkat project, kebutuhan menjalankan aplikasi secara lokal, dan referensi menuju `overview.md` serta `deploy.md`.
 
-### 14.2. Pengujian Endpoint
+Jangan menduplikasi seluruh isi kedua dokumen tersebut.
 
-Uji dari host VPS:
+## 15. Deployment Workflow
 
-```bash
-curl -i http://127.0.0.1:8081/
-```
+Gambaran umum deployment pada VPS:
 
-Uji health check melalui domain publik:
+1. Pemilik VPS memastikan DNS record domain sudah diarahkan ke VPS melalui Cloudflare.
+2. Periksa kondisi VPS Debian 12.
+3. Periksa Nginx dan SSL yang sudah berjalan.
+4. Pastikan Docker dan Docker Compose tersedia.
+5. Siapkan source code aplikasi.
+6. Siapkan `.env`.
+7. Build dan jalankan container.
+8. Pastikan container aplikasi dan database berjalan.
+9. Uji aplikasi melalui `127.0.0.1:8081`.
+10. Tambahkan konfigurasi `/app-tamu` pada server block HTTPS yang sudah tersedia.
+11. Periksa konfigurasi menggunakan `nginx -t`.
+12. Jika valid, reload Nginx.
+13. Uji aplikasi melalui URL publik.
+14. Uji seluruh endpoint API.
+15. Periksa logging dan pastikan aplikasi berjalan dengan benar.
 
-```bash
-curl -i https://lksbarokah255.my.id/app-tamu/api/v1/health
-```
+Detail langkah dan command deployment wajib ditulis di `deploy.md`, bukan dijabarkan panjang di `overview.md`.
 
-Uji pengambilan daftar tamu:
-
-```bash
-curl -i https://lksbarokah255.my.id/app-tamu/api/v1/guests
-```
-
-Uji penambahan tamu:
-
-```bash
-curl -i -X POST \
-  https://lksbarokah255.my.id/app-tamu/api/v1/guests \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Testing Bank Jatim"}'
-```
-
-Pastikan response sesuai dengan standar API yang telah ditentukan.
-
-## 15. Definition of Done
+## 16. Definition of Done
 
 Aplikasi dinyatakan selesai apabila:
 
 - Aplikasi menggunakan PHP Native dan MySQL.
-- Pengguna dapat menambahkan nama tamu.
-- Daftar tamu tampil dalam bentuk grid.
+- Aplikasi menggunakan konsep one-page web.
+- Form data tamu tersedia di bagian atas halaman.
+- Tabel daftar tamu tersedia di bawah form.
+- Form memiliki field nama, email, nomor HP, dan keperluan kunjungan.
+- Keperluan kunjungan mendukung input manual dan dropdown.
+- Dropdown hanya menyediakan pilihan `Minta API Data Tamu`.
+- Data IP address dicatat otomatis oleh backend.
+- Email, nomor HP, dan IP address disensor pada tabel.
+- Tabel menampilkan kolom Last Updated.
 - Data tersimpan di MySQL.
 - Endpoint health check dapat diakses.
 - Endpoint GET guests dapat diakses.
 - Endpoint POST guests dapat digunakan.
 - Seluruh endpoint memberikan response JSON yang konsisten.
-- Validasi input berjalan.
+- Validasi frontend dan backend berjalan.
+- Keamanan dasar diterapkan.
 - Positive case, negative case, dan edge case telah diuji.
 - Aplikasi dapat dijalankan menggunakan Docker Compose.
 - Data database tetap tersimpan menggunakan named volume.
 - MySQL tidak terekspos ke internet.
 - Container aplikasi hanya dipublikasikan pada `127.0.0.1:8081`.
 - Aplikasi dapat diakses melalui `https://lksbarokah255.my.id/app-tamu`.
-- Seluruh aset, form, navigasi, dan endpoint API menggunakan base path `/app-tamu` dengan benar.
-- SSL tetap menggunakan konfigurasi Certbot yang sudah ada.
-- Konfigurasi Nginx tidak mengganggu website lain yang sudah berjalan.
+- Seluruh aset, form, navigasi, dan endpoint API menggunakan base path `/app-tamu`.
+- SSL tetap menggunakan konfigurasi yang sudah ada.
+- Konfigurasi Nginx tidak mengganggu website lain.
+- `overview.md`, `deploy.md`, dan `README.md` tersedia dan sesuai implementasi.
 
-## 16. Instruksi untuk AI CLI
+## 17. Instruksi untuk AI CLI
 
 Sebelum melakukan implementasi:
 
@@ -745,12 +962,16 @@ Sebelum melakukan implementasi:
 2. Pahami tujuan aplikasi dan batasan teknologinya.
 3. Periksa kondisi project dan struktur file yang sudah ada.
 4. Identifikasi kebutuhan implementasi berdasarkan dokumen ini.
-5. Jangan menambahkan fitur di luar ruang lingkup yang ditentukan.
+5. Jangan menambahkan fitur di luar ruang lingkup.
 6. Jangan menggunakan framework PHP atau framework frontend tambahan.
 7. Jangan melakukan overengineering.
-8. Pastikan seluruh URL internal aplikasi konsisten menggunakan `APP_BASE_PATH`.
+8. Pastikan seluruh URL internal konsisten menggunakan `APP_BASE_PATH`.
 9. Pastikan konfigurasi Docker, Apache, dan Nginx saling sesuai.
-10. Pastikan konfigurasi Nginx yang sudah ada tidak terganggu.
+10. Pastikan masking data benar-benar diterapkan pada data yang dikirim ke frontend.
+11. Pastikan pencatatan IP memperhatikan trusted proxy.
+12. Buat `deploy.md` sebagai panduan deployment VPS yang terpisah.
+13. Buat `README.md` sebagai dokumentasi pengantar.
+14. Pastikan dokumentasi sesuai dengan implementasi aktual, bukan sekadar menyalin rencana.
 
 Untuk deployment VPS:
 
@@ -762,7 +983,7 @@ Untuk deployment VPS:
 - Jangan mengubah konfigurasi SSL yang sudah tersedia.
 - Jangan mengubah konfigurasi website lain.
 - Jangan mengubah port aplikasi tanpa alasan teknis yang jelas.
-- Jika terdapat potensi konflik konfigurasi, jelaskan terlebih dahulu sebelum melakukan perubahan.
+- Jika terdapat potensi konflik konfigurasi, jelaskan terlebih dahulu.
 - Pastikan `nginx -t` berhasil sebelum reload.
 
-**Prioritas utama:** implementasikan aplikasi sesederhana mungkin, pastikan API dapat diakses dari luar server melalui domain yang sudah tersedia, dan pastikan deployment Docker tidak mengganggu layanan lain pada VPS.
+**Prioritas utama:** buat aplikasi one-page yang sederhana, dapat mencatat data tamu dengan benar, menjaga privasi informasi pada tampilan tabel, mencatat keperluan permintaan API, dan menyediakan endpoint yang dapat diuji dari luar server melalui domain yang sudah tersedia.
