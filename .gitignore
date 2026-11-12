@@ -1,0 +1,8 @@
+# Kredensial / konfigurasi sensitif — jangan pernah di-commit
+.env
+
+# Log runtime
+logs/*.log
+
+# File sistem macOS
+.DS_Store

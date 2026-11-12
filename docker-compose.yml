@@ -1,0 +1,52 @@
+# Guest Application & API Connectivity Tester
+# Dua container: app (PHP 8.3 + Apache) dan db (MySQL 8.4).
+#
+# Container app HANYA dipublikasikan ke 127.0.0.1:8081 pada host.
+# MySQL TIDAK mengekspos port apa pun ke host maupun internet.
+
+services:
+  app:
+    build: .
+    container_name: guest-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:80"
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_BASE_PATH: ${APP_BASE_PATH:-/app-tamu}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Jakarta}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE:-guest_app}
+      DB_USERNAME: ${DB_USERNAME:-guest_user}
+      DB_PASSWORD: ${DB_PASSWORD:-guest_password}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1/api/v1/health') === false ? 1 : 0);"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  db:
+    image: mysql:8.4
+    container_name: guest-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-guest_app}
+      MYSQL_USER: ${DB_USERNAME:-guest_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-guest_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  mysql_data:
