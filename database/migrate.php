@@ -34,7 +34,7 @@ for ($i = 1; $i <= MIGRATE_ATTEMPTS; $i++) {
         }
         fwrite(
             STDERR,
-            sprintf("[%s] INFO: database belum siap (percobaan %d/%d), mencoba lagi dalam %ds...\n", date('Y-m-d H:i:s'), $i, MIGRATE_ATTEMPTS, MIGRATE_DELAY_SECONDS)
+            sprintf("[%s] INFO: database belum siap (percobaan %d/%d, %s), mencoba lagi dalam %ds...\n", date('Y-m-d H:i:s'), $i, MIGRATE_ATTEMPTS, $e->getMessage(), MIGRATE_DELAY_SECONDS)
         );
         sleep(MIGRATE_DELAY_SECONDS);
     }

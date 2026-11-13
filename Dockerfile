@@ -2,10 +2,11 @@ FROM php:8.3-apache
 
 ENV TZ=Asia/Jakarta
 
-# pdo_mysql: driver database; mbstring: validasi panjang teks Unicode.
-# rewrite: routing front controller (pola per-directory).
+# pdo_mysql: driver database; mbstring: validasi panjang teks Unicode
+# (butuh libonig-dev); rewrite: routing front controller (pola per-directory).
 RUN set -eux; \
     a2enmod rewrite; \
+    apt-get update && apt-get install -y --no-install-recommends libonig-dev && rm -rf /var/lib/apt/lists/*; \
     docker-php-ext-install pdo_mysql mbstring
 
 COPY docker/php/app.ini /usr/local/etc/php/conf.d/zz-app.ini

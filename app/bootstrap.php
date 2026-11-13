@@ -20,15 +20,26 @@ require __DIR__ . '/helpers/csrf.php';
 require __DIR__ . '/helpers/flash.php';
 
 // Autoloader sederhana untuk namespace App\ (tanpa Composer).
+// Direktori project memakai huruf kecil (app/config, app/controllers, ...)
+// sehingga lookup nama file dicoba persis lalu versi lowercase.
 spl_autoload_register(static function (string $class): void {
     $prefix = 'App\\';
     if (!str_starts_with($class, $prefix)) {
         return;
     }
 
-    $file = __DIR__ . '/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($file)) {
-        require $file;
+    $relative = substr($class, strlen($prefix));
+    $segments = explode('\\', $relative);
+    $classFile = array_pop($segments);
+    $dir = strtolower(implode('/', $segments));
+    $base = __DIR__ . '/' . ($dir !== '' ? $dir . '/' : '');
+
+    foreach ([$classFile, strtolower($classFile)] as $name) {
+        $file = $base . $name . '.php';
+        if (is_file($file)) {
+            require $file;
+            return;
+        }
     }
 });
 
