@@ -26,6 +26,7 @@ $mode = (string) ($old['purpose_mode'] ?? 'manual');
     <div class="flash flash-<?= e($flash['type']) ?>" role="alert"><?= e($flash['message']) ?></div>
   <?php endif; ?>
 
+  <div class="layout">
   <section class="card">
     <h2>Form Data Tamu</h2>
     <form method="post" action="<?= e(app_url('/')) ?>" id="guest-form" novalidate>
@@ -115,13 +116,7 @@ $mode = (string) ($old['purpose_mode'] ?? 'manual');
     </div>
     <?php endif; ?>
   </section>
-
-  <footer class="app-footer">
-    <p>Endpoint API:
-      <a href="<?= e(app_url('api/v1/health')) ?>">/api/v1/health</a> ·
-      <a href="<?= e(app_url('api/v1/guests')) ?>">/api/v1/guests</a>
-    </p>
-  </footer>
+  </div>
 </main>
 
 <script src="<?= e(asset_url('js/app.js')) ?>"></script>

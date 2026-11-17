@@ -25,9 +25,26 @@ body {
 }
 
 .container {
-  max-width: 960px;
+  width: 100%;
   margin: 0 auto;
   padding: 24px 16px 48px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 35% 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .container {
+    width: 100%;
+  }
 }
 
 .app-header h1 {
@@ -47,6 +64,10 @@ body {
   padding: 20px;
   margin-bottom: 20px;
   box-shadow: 0 1px 2px rgb(0 0 0 / 4%);
+}
+
+.layout .card {
+  margin-bottom: 0;
 }
 
 .card h2 {
@@ -199,15 +220,6 @@ th {
 
 .empty {
   color: var(--muted);
-}
-
-.app-footer {
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.app-footer a {
-  color: var(--accent);
 }
 
 .error-card {
